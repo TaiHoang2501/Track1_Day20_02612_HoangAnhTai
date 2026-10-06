@@ -65,3 +65,42 @@
   - **Không phải "Mở app / Đăng nhập":** Mở app hay đăng nhập chỉ là thao tác hạ tầng/phiên làm việc (session/login), không mang lại giá trị nghiệp vụ và không chứng minh được nhu cầu thực tế của người mua. Thậm chí, BookingBot cho phép **Guest Chat (trải nghiệm không cần đăng nhập trước)**, chứng minh việc đăng nhập thuần túy không tạo ra giá trị cốt lõi.
   - **Không phải "Hỏi AI" (Chat chung chung):** Đặt câu hỏi cho AI (*"Tìm giúp tôi căn 2PN Ocean Park"* hoặc *"Giá căn hộ ở đây thế nào?"*) chỉ là một vi thao tác giao diện (UI interaction) ở bước khám phá. Nếu người dùng hỏi 20 câu nhưng không bao giờ bấm đặt lịch xem căn nào thì họ nhận được **zero core value** (vẫn chưa có lịch xem thực tế, vẫn chưa thẩm định được căn nhà).
   - **Bản chất của `Submit Booking Request`:** Đây là hành vi mang **cam kết giao dịch thực tế (transactional intent)**. Nó kết nối toàn bộ chuỗi giá trị: từ nhu cầu hội thoại $\rightarrow$ lựa chọn căn thật $\rightarrow$ khóa khung giờ hẹn thực tế của chủ nhà. Đây chính là cột mốc phân định giữa "người dùng dạo chơi" và "khách hàng thực sự tiến tới nhận giá trị cốt lõi".
+
+---
+
+## 02 — Nature & cadence
+
+### 1. Điền Action Nature Card (10')
+
+| Thành phần | Câu hỏi định hướng | Câu trả lời của bạn (BookingBot AI Agent) |
+| :--- | :--- | :--- |
+| **Actor** | User, account, team hay object nào thực hiện? | **User cá nhân (Người mua nhà / Buyer)** — thực hiện dưới phiên tài khoản định danh hoặc khách vãng lai (Guest) đã xác thực SĐT/OTP. |
+| **Intent** | Hành vi bắt đầu từ nhu cầu gì? | Nhu cầu **khảo sát thực tế căn hộ Vinhomes** (thẩm định chất lượng xây dựng, hướng nắng gió, tầm view, không gian sống và tiện ích nội khu) trước khi ra quyết định xuống tiền mua nhà hoặc đầu tư. |
+| **Trigger** | Do user chủ động, sự kiện bên ngoài, người khác hay hệ thống kích hoạt? | • **Chủ đạo:** **User chủ động** kích hoạt khi tìm thấy căn ưng ý qua đối thoại với AI Agent và chọn slot giờ rảnh.<br>• **Bổ trợ:** **Hệ thống kích hoạt** (Autonomous follow-up: AI chủ động gợi ý khung giờ trống phù hợp hoặc thông báo căn hộ mới khớp tiêu chí đã lưu). |
+| **Effort** | Mất bao nhiêu thời gian, suy nghĩ, dữ liệu? | **Mức độ nỗ lực Trung bình – Thấp (1–3 phút):**<br>• *Thời gian:* 1–2 phút trao đổi và chọn lịch trên giao diện thẻ tương tác (Rich Cards).<br>• *Nhận thức:* Đối chiếu lịch rảnh của bản thân/gia đình (thường là cuối tuần hoặc sau giờ làm việc).<br>• *Dữ liệu:* Cung cấp tiêu chí tìm kiếm, chọn slot giờ và nhập SĐT xác thực OTP nếu là khách mới. |
+| **Value timing** | Value xuất hiện ngay, trễ, tích lũy, hay phụ thuộc người khác? | **Trễ có điều kiện & Phụ thuộc người khác (Delayed & Dependent):**<br>• Không nhận value tức thì tại giây bấm nút mà phải đợi Chủ nhà duyệt (`Approve`).<br>• *Tầng 1 (An tâm & Tạm giữ căn):* Xuất hiện sau vài phút đến vài giờ khi Chủ nhà duyệt $\rightarrow$ viewing hold được khóa độc quyền.<br>• *Tầng 2 (Trải nghiệm thực tế):* Xuất hiện tại thời điểm người mua trực tiếp đến xem nhà thành công. |
+| **State** | Sau action, dữ liệu/trạng thái nào được giữ lại? | • Tạo bản ghi `Booking` với trạng thái `REQUESTED`.<br>• Tạo/Cập nhật bản ghi `Deal` với trạng thái `VIEWING_REQUESTED`.<br>• Tạm khóa slot thời gian tương ứng trong `AvailabilitySlot` để ngăn xung đột lịch.<br>• Lưu tiêu chí tìm kiếm vào `buyer_profiles` trong database để AI ghi nhớ cho các phiên sau. |
+| **Dependency** | Có phụ thuộc nguồn cung, thành viên khác, approval, thời điểm? | • **Phụ thuộc Nguồn cung (Supply):** Căn hộ phải đang `AVAILABLE` và Chủ nhà phải mở sẵn các slot lịch trống.<br>• **Phụ thuộc Approval:** Bắt buộc phải có sự phê duyệt từ phía Chủ nhà (`Owner`).<br>• **Phụ thuộc Thời điểm:** Thời gian xem phải diễn ra trong tương lai và tuân thủ quy định ra vào của Ban quản lý tòa nhà Vinhomes. |
+| **Repeat condition** | Điều kiện nào khiến action có lý do xuất hiện lại? | • Người mua muốn xem thêm 2–4 căn hộ khác để so sánh (khác tầng, view, phân khu) trước khi chốt mua.<br>• Căn đã xem chưa ưng ý $\rightarrow$ Tiếp tục tìm căn khác.<br>• Chủ nhà từ chối hoặc yêu cầu đổi giờ (`RESCHEDULE_REQUESTED`) $\rightarrow$ Kích hoạt người mua chọn lại khung giờ mới. |
+
+---
+
+### 2. Kết luận cadence (5')
+
+1. **Dạng hành vi đã chọn:** **Hành vi theo dự án (Project-based Journey) kết hợp Giao dịch (Transactional).**  
+   *(Mua nhà không phải là thói quen hàng ngày hay hàng tuần quanh năm; đây là một "chiến dịch mua nhà" tập trung diễn ra trong một khoảng thời gian nhất định từ 2–6 tuần, sau đó kết thúc khi hoàn tất giao dịch).*
+
+2. **Kết luận theo chuẩn template:**
+   > Đối với **người mua nhà Vinhomes (Homebuyer)**, core action **gửi yêu cầu đặt lịch hẹn xem nhà (Submit Booking Request)** thường xuất hiện **thành từng cụm 2–4 lần trong suốt hành trình tìm mua nhà kéo dài 2–4 tuần (chủ yếu tập trung vào các ngày cuối tuần)** vì **mua bất động sản là quyết định tài chính lớn đòi hỏi khảo sát và đối chiếu trực tiếp nhiều căn hộ trước khi xuống tiền, nhưng một khi đã chốt mua thành công thì nhu cầu sẽ dừng lại**. Do đó, nhịp đo phù hợp là **nhịp theo tuần (Weekly) trong suốt vòng đời dự án tìm nhà (Active Buying Journey / Cohort 30 ngày)** ở cấp **cá nhân người mua (per active buyer)**.
+
+3. **Cân nhắc chiều sâu (Frequency vs. Value trong sản phẩm AI):**
+   - **Tần suất cao hơn KHÔNG đồng nghĩa với giá trị cao hơn:** Trong sản phẩm BĐS hỗ trợ bởi AI, nếu một người mua phải gửi yêu cầu đặt lịch 15–20 lần mà vẫn chưa chốt được căn nào, đó là tín hiệu của sự ma sát hoặc thất vọng (AI gợi ý sai nhu cầu, hình ảnh không khớp thực tế, hoặc giá ảo).
+   - **Đặc trưng AI:** Trợ lý AI giỏi là trợ lý giúp người mua **tìm đúng căn nhanh nhất với số lượt xem ít nhất nhưng trúng đích nhất** (tối ưu Time-to-Value và Task Completion thay vì kéo dài thời gian onscreen vô nghĩa).
+
+---
+
+### 3. GATE 2 — Cadence từ nature, không từ dashboard
+
+- [x] **Kết luận đúng template:** Đầy đủ các trường `Đối với... core action... thường xuất hiện... vì... Do đó, nhịp đo phù hợp là... ở cấp...`.
+- [x] **Lý do "vì" hoàn toàn đứng vững:** Dựa trên bản chất chu kỳ ra quyết định mua tài sản lớn (High-involvement decision cycle) và hành vi thực tế của khách hàng mua nhà đại đô thị.
+- [x] **Nhịp đo không mâu thuẫn với dạng hành vi:** Chọn đo lường **Weekly / Journey-based (Cohort 30 ngày)**, dứt khoát không rơi vào bẫy áp đặt các chỉ số DAU/Daily máy móc từ giao diện dashboard thông thường.
