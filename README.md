@@ -104,3 +104,102 @@
 - [x] **Kết luận đúng template:** Đầy đủ các trường `Đối với... core action... thường xuất hiện... vì... Do đó, nhịp đo phù hợp là... ở cấp...`.
 - [x] **Lý do "vì" hoàn toàn đứng vững:** Dựa trên bản chất chu kỳ ra quyết định mua tài sản lớn (High-involvement decision cycle) và hành vi thực tế của khách hàng mua nhà đại đô thị.
 - [x] **Nhịp đo không mâu thuẫn với dạng hành vi:** Chọn đo lường **Weekly / Journey-based (Cohort 30 ngày)**, dứt khoát không rơi vào bẫy áp đặt các chỉ số DAU/Daily máy móc từ giao diện dashboard thông thường.
+
+---
+
+## 03 — Metric System
+
+### 1. Activation metric (5')
+
+- **Start event:** `first_query_sent`  
+  *Thời điểm:* Người mua gửi tin nhắn đầu tiên nêu tiêu chí tìm nhà trên giao diện chat của BookingBot (bắt đầu phiên hội thoại tìm kiếm).
+- **Activation event:** `first_booking_requested` *(kèm điều kiện nhận xác nhận `first_booking_confirmed`)*  
+  *Thời điểm:* Người mua gửi yêu cầu đặt lịch hẹn xem nhà đầu tiên cho một căn hộ cụ thể và lịch hẹn được đưa vào quy trình tạm giữ chỗ. Đây là sự kiện xác nhận người mua đã đi qua toàn bộ phễu giá trị ban đầu và chạm vào giá trị cốt lõi.
+- **Time window:** Trong vòng **72 giờ (3 ngày)** kể từ `Start event`.  
+  *Cơ sở:* Nhu cầu tìm mua nhà có tính tập trung cao độ trong 1–3 ngày đầu tiên. Dữ liệu thực tế cho thấy nếu người mua không chuyển hóa thành một yêu cầu xem nhà cụ thể trong vòng 72 giờ, xác suất họ rời bỏ sản phẩm sang các kênh môi giới truyền thống là trên 80%.
+
+> **Tránh lỗi thường gặp:** Không dùng "Hoàn thành tour hướng dẫn" hay "Đăng nhập/Tạo tài khoản" làm Activation, vì người dùng có thể tạo tài khoản nhưng không tìm được căn nào phù hợp và rời đi mà chưa nhận được bất kỳ giá trị thực tế nào.
+
+---
+
+### 2. Engagement metric (3')
+
+Chọn 2 góc đo phù hợp nhất với bản chất sản phẩm:
+
+1. **Góc đo Frequency (Tần suất trong nhịp tự nhiên):**
+   - **Chỉ số:** `Weekly Bookings per Active Buyer` — Số lượt gửi yêu cầu xem nhà trung bình mỗi tuần của một người mua đang active trong hành trình tìm nhà.
+   - **Kỳ vọng:** **1.5 – 2.5 bookings / active week** (Tập trung khảo sát vào thứ 7 và chủ nhật).
+2. **Góc đo Depth (Độ sâu / Chất lượng giá trị của hành động):**
+   - **Chỉ số:** `Viewing Confirmation & Completion Rate` — Tỷ lệ các yêu cầu đặt lịch được Chủ nhà phê duyệt (`Confirmed`) và khách hàng thực tế đến tham quan (`Completed`):
+     $$\text{Viewing Quality Depth} = \frac{\text{Số lịch hẹn đã đi xem thực tế (Completed)}}{\text{Tổng số yêu cầu đặt lịch (Requested)}} \times 100\%$$
+   - **Kỳ vọng:** $\ge 65\%$ (Đảm bảo mỗi lượt booking đều là nhu cầu thật, hạn chế tối đa booking ảo hoặc bị hủy).
+
+---
+
+### 3. North Star Metric, Leading Indicators & Counter-metric (10')
+
+#### A. North Star Metric (NSM)
+* **Công thức chuẩn 3 thành phần:**
+  $$\text{NSM} = [\text{Unit of value}] + [\text{Quality threshold}] + [\text{Frequency}]$$
+* **Tên chỉ số NSM của BookingBot:**
+  > **Weekly Confirmed & Held Viewings** *(Số lượt xem nhà được Chủ nhà phê duyệt và kích hoạt Viewing Hold thành công mỗi tuần)*
+* **Bóc tách 3 thành phần:**
+  - **Unit of value:** Lượt xem nhà thực tế được đảm bảo giữ chỗ độc quyền (`Confirmed & Held Viewing`).
+  - **Quality threshold:** Căn hộ có Sổ đỏ xác thực, Chủ nhà duyệt lịch hợp lệ, và ràng buộc cơ sở dữ liệu (Exclusion Constraint) kích hoạt Viewing Hold thành công không xảy ra lỗi trùng lịch (Zero double-booking).
+  - **Frequency:** Đo lường theo nhịp tự nhiên hàng tuần (`Weekly`).
+* **Ý nghĩa:** Phản ánh trực tiếp giá trị win-win của cả hai bên: Người mua chắc chắn có lịch xem căn thật không bị tranh chấp, Chủ nhà đón tiếp đúng khách mua tiềm năng, AI Agent hoàn thành xuất sắc vai trò điều phối.
+
+#### B. Leading Indicators (3 chỉ số dẫn dắt dự báo)
+1. **Match-to-Card CTR (Tỷ lệ tương tác với thẻ căn hộ AI gợi ý):**
+   - *Công thức:* Tỷ lệ người mua bấm xem chi tiết căn hộ từ các thẻ Rich Cards mà AI đề xuất trong đoạn chat.
+   - *Dự báo:* Nếu người mua click xem chi tiết $\ge 3$ căn trong phiên chat, điều này chứng minh AI đã hiểu đúng tiêu chí (budget, vị trí, tiện ích) $\rightarrow$ xác suất chuyển đổi sang `Submit Booking Request` tăng hơn 3.5 lần.
+2. **Slot Matching Success Rate (Tỷ lệ khớp khung giờ rảnh):**
+   - *Công thức:* Tỷ lệ phiên tìm kiếm tìm thấy ít nhất 1 khung giờ rảnh chung giữa Người mua và Chủ nhà trong vòng 48 giờ tới.
+   - *Dự báo:* Nếu có sẵn slot giờ khớp ngay lập tức, ma sát chờ đợi được triệt tiêu $\rightarrow$ dự báo số lượt bấm đặt lịch hoàn tất trong phiên tăng thêm 60%.
+3. **Owner Median Response Time (Thời gian phản hồi trung vị của Chủ nhà):**
+   - *Công thức:* Thời gian trung vị từ khi Người mua gửi yêu cầu đến khi Chủ nhà bấm `Approve` hoặc `Reject`.
+   - *Dự báo:* Nếu Chủ nhà phản hồi dưới 30 phút, tâm lý hào hứng của khách mua được duy trì $\rightarrow$ dự báo tỷ lệ khách tiếp tục đặt lịch xem thêm căn thứ 2 (Repeat Booking) trong cùng tuần tăng 45%.
+
+#### C. Counter-metrics (Chỉ số đối trọng chống game metric)
+1. **Buyer No-Show Rate (Tỷ lệ khách bỏ hẹn không đến):**
+   - *Rủi ro nếu bị game:* Nếu AI thúc ép hoặc tự động đặt lịch vô tội vạ để "thổi phồng" NSM, số lượt booking tăng vọt nhưng khách không đến xem nhà $\rightarrow$ làm phiền Chủ nhà, mất uy tín nền tảng.
+   - *Ngưỡng kiểm soát:* **Tỷ lệ No-show phải duy trì $\le 10\%$.**
+2. **Double-Booking / Hold Conflict Rate (Tỷ lệ xung đột lịch hoặc lỗi trùng căn):**
+   - *Rủi ro nếu bị game:* Lỗi tranh chấp tài nguyên do ép tăng tải giao dịch dẫn đến 2 khách cùng được cấp quyền giữ 1 căn tại 1 thời điểm.
+   - *Ngưỡng kiểm soát:* **Tuyệt đối bằng 0 (0% Tolerance).**
+3. **AI Spec-Mismatch Complaint Rate (Tỷ lệ khiếu nại thông tin sai lệch từ AI):**
+   - *Rủi ro nếu bị game:* AI "ảo giác" (hallucinate) nói sai về phí dịch vụ, tầm view, hoặc hướng nhà để dụ khách đặt lịch.
+   - *Ngưỡng kiểm soát:* **Tỷ lệ khiếu nại sai lệch thông tin $\le 2\%$ tổng số lượt xem.**
+
+---
+
+## 04 — Retention Definition
+
+### 1. Bảng 6 thành phần Retention chuẩn mực
+
+| Thành phần | Câu hỏi định hướng | Định nghĩa cho BookingBot AI Agent |
+| :--- | :--- | :--- |
+| **Unit** | User, account, team, organization hay object? | **User cá nhân (Người mua nhà / Buyer)** — định danh qua số điện thoại / User ID. |
+| **Cohort entry** | Event nào đưa unit vào cohort? | **`first_booking_requested`** — Thời điểm người mua gửi yêu cầu đặt lịch xem nhà đầu tiên hợp lệ. |
+| **Return event** | Core action / value event nào phải lặp lại? | **`repeat_booking_requested`** (Gửi yêu cầu xem căn tiếp theo) HOẶC **`viewing_completed`** (Đến xem nhà thực tế thành công). |
+| **Window** | Daily, weekly, monthly, project-based hay custom bracket? | **Custom Journey Brackets trong hành trình tìm nhà 30 ngày (Weekly Brackets):**<br>• *Bracket 1 (W1):* Ngày 1 – 7 kể từ cohort entry.<br>• *Bracket 2 (W2):* Ngày 8 – 14.<br>• *Bracket 3 (W3):* Ngày 15 – 21.<br>• *Bracket 4 (W4):* Ngày 22 – 30. |
+| **Threshold** | Một lần hay nhiều lần trong window? | **$\ge 1$ lần** Return Event trong mỗi tuần của cửa sổ 30 ngày. |
+| **Segment** | Retention đang áp dụng cho ai? | **Active Homebuyers Cohort** — Khách hàng có nhu cầu mua nhà thực tế trong 30 ngày (loại trừ tài khoản test nội bộ, môi giới bị gắn cờ spam, và khách hàng đã chốt cọc mua thành công). |
+
+---
+
+### 2. Đối chiếu chuẩn mực Cadence & Tính chất danh mục (Category Benchmark)
+
+- **Tránh bẫy D7 / Daily Retention:**
+  Bất động sản là ngành hàng giá trị cao (High-ticket transactional category). Việc đòi hỏi khách hàng quay lại "mỗi ngày" (Daily retention) hay chỉ nhìn chỉ số "D7 đơn lẻ" là sai lệch hoàn toàn về bản chất hành vi người dùng. Người mua chỉ đi xem nhà tập trung vào các ngày cuối tuần.
+- **Khái niệm "Healthy Exit" (Rời cohort tích cực):**
+  Khi người mua hoàn tất giao dịch cọc (`deal_completed_deposit`), họ sẽ dừng việc đặt lịch xem nhà. Trong mô hình retention của BookingBot, trường hợp này được ghi nhận là **Hoàn thành mục tiêu thành công (Success State)** chứ không bị tính là Churn.
+
+---
+
+## GATE 3 — Metric tính được, retention đủ nghĩa
+
+- [x] **Activation hoàn chỉnh:** Có đầy đủ `Start event` (`first_query_sent`), `Activation event` (`first_booking_requested` / `first_booking_confirmed`), và `Time window` (72 giờ). Không dùng các thao tác giao diện hời hợt (mở app, xem tour).
+- [x] **Retention đủ 6 thành phần:** Đầy đủ `Unit`, `Cohort entry`, `Return event`, `Window`, `Threshold`, `Segment` và hoàn toàn đồng nhất với nhịp Cadence tuần/hành trình 30 ngày đã xác lập ở Phase 2.
+- [x] **North Star Metric đúng chuẩn:** Tuân thủ cấu trúc 3 thành phần `[Unit of value: Confirmed & Held Viewing] + [Quality threshold: Sổ đỏ + Không trùng lịch] + [Frequency: Weekly]`.
+- [x] **Có đủ Leading Indicators & Counter-metrics:** Gồm 3 chỉ số dẫn dắt thực tế và 3 chỉ số đối trọng nghiêm ngặt (chống No-show, chống Double-booking, chống AI Hallucination).
