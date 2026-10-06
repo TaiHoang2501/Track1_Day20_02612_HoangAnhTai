@@ -1,7 +1,10 @@
 # Track1_Day20_02612_HoangAnhTai
 
-- **Họ tên:** Hoàng Anh Tài
-- **MHV:** 2A202602612
+- **Họ và tên:** Hoàng Anh Tài
+- **Mã học viên (MHV):** 2A202602612
+- **Tên nhóm:** Tomorrow
+- **Repository:** [https://github.com/TaiHoang2501/Track1_Day20_02612_HoangAnhTai](https://github.com/TaiHoang2501/Track1_Day20_02612_HoangAnhTai)
+- **Tệp Metrics Pack:** [`README.md`](README.md) *(Công khai, đầy đủ 5 Gates theo chuẩn rubric)*
 
 ---
 
@@ -50,11 +53,11 @@
 | **4. Có ý nghĩa** | Hành vi tăng có thật sự nghĩa là sản phẩm tốt hơn không? | **ĐẠT** | Số lượng `booking_requested` tăng chứng minh AI Agent bóc tách nhu cầu chuẩn xác, dữ liệu căn hộ uy tín, loại bỏ được lực cản đắn đo của khách (thay vì khách chỉ vào chat vài câu vu vơ rồi rời bỏ - drop-off). |
 | **5. Có thể tác động** | Team có thể cải thiện khả năng nó xảy ra không? | **ĐẠT** | Product Team hoàn toàn có thể tối ưu: Nâng cấp thuật toán gợi ý căn hộ (Hybrid SQL + Soft Score), hiển thị thẻ tương tác (Rich Cards) trực quan trong chat, đề xuất slot giờ thông minh, giảm ma sát xác thực OTP và gửi thông báo chăm sóc chủ động (Autonomous Follow-up). |
 
-> **Kết quả đánh giá:** **5/5 tiêu chí ĐẠT** (Vượt ngưỡng yêu cầu $\ge 4/5$).
+> **Kết quả đánh giá:** **5/5 tiêu chí ĐẠT** (0 tiêu chí trượt).
 
 ---
 
-### 3. GATE 1 — Core action đứng vững
+### GATE 1 — Core action đứng vững
 
 - [x] **Có đủ 3 thành tố cốt lõi:**
   - **Actor:** Người mua nhà (`Homebuyer / Buyer`).
@@ -99,7 +102,7 @@
 
 ---
 
-### 3. GATE 2 — Cadence từ nature, không từ dashboard
+### GATE 2 — Cadence từ nature, không từ dashboard
 
 - [x] **Kết luận đúng template:** Đầy đủ các trường `Đối với... core action... thường xuất hiện... vì... Do đó, nhịp đo phù hợp là... ở cấp...`.
 - [x] **Lý do "vì" hoàn toàn đứng vững:** Dựa trên bản chất chu kỳ ra quyết định mua tài sản lớn (High-involvement decision cycle) và hành vi thực tế của khách hàng mua nhà đại đô thị.
@@ -197,7 +200,7 @@ Chọn 2 góc đo phù hợp nhất với bản chất sản phẩm:
 
 ---
 
-## GATE 3 — Metric tính được, retention đủ nghĩa
+### GATE 3 — Metric tính được, retention đủ nghĩa
 
 - [x] **Activation hoàn chỉnh:** Có đầy đủ `Start event` (`first_query_sent`), `Activation event` (`first_booking_requested` / `first_booking_confirmed`), và `Time window` (72 giờ). Không dùng các thao tác giao diện hời hợt (mở app, xem tour).
 - [x] **Retention đủ 6 thành phần:** Đầy đủ `Unit`, `Cohort entry`, `Return event`, `Window`, `Threshold`, `Segment` và hoàn toàn đồng nhất với nhịp Cadence tuần/hành trình 30 ngày đã xác lập ở Phase 2.
@@ -252,6 +255,14 @@ Repeat Value 2: Tiếp tục chốt lịch xem so sánh có bảo đảm giữ c
 
 ---
 
+### GATE 4 — Product Loop (Loop nối metric)
+
+- [x] **Loop $\ge 2$ chu kỳ:** Thiết kế rõ nét 2 chu kỳ: Chu kỳ 1 (Khám phá & Đặt căn đầu) $\rightarrow$ Saved State (Profile & Deal ID) $\rightarrow$ Next Natural Trigger (Nhu cầu đối chứng) $\rightarrow$ Chu kỳ 2 (Đặt căn so sánh & Chốt cọc).
+- [x] **Metric Hypothesis chuẩn xác:** Trỏ trực tiếp về metric `Viewing Confirmation & Completion Rate` ở Phase 3 với dự báo định lượng cụ thể (tăng từ 45% lên 65% trong 30 ngày).
+- [x] **Reason to return ngoài Notification:** Dựa vào nhu cầu khảo sát so sánh thực tế và dữ liệu hồ sơ cá nhân đã được lưu trữ an toàn trong hệ thống.
+
+---
+
 ## 06 — Tracking nhanh
 
 ### 1. Bảng Core Events (4–8 core events dạng `object_action`)
@@ -278,16 +289,15 @@ Repeat Value 2: Tiếp tục chốt lịch xem so sánh có bảo đảm giữ c
 
 ---
 
-## GATE 4 — Loop nối metric, event nối loop
+### GATE 5 — Tracking (Event nối loop & Metric)
 
-- [x] **Loop $\ge 2$ chu kỳ:** Thiết kế rõ nét 2 chu kỳ: Chu kỳ 1 (Khám phá & Đặt căn đầu) $\rightarrow$ Saved State (Profile & Deal ID) $\rightarrow$ Next Natural Trigger (Nhu cầu đối chứng) $\rightarrow$ Chu kỳ 2 (Đặt căn so sánh & Chốt cọc).
-- [x] **Metric Hypothesis chuẩn xác:** Trỏ trực tiếp về metric `Viewing Confirmation & Completion Rate` ở Phase 3 với dự báo định lượng cụ thể (tăng từ 45% lên 65% trong 30 ngày).
+- [x] **Số lượng và định dạng chuẩn:** Có đúng 6 core events dạng `object_action`.
 - [x] **Map 100% Events về Metric:** Tất cả 6/6 events trong bảng (`query_sent`, `card_clicked`, `booking_requested`, `viewing_confirmed`, `viewing_completed`, `viewing_cancelled`) đều map trực tiếp về ít nhất một metric cốt lõi đã định nghĩa ở Phase 3.
-- [x] **Tiêu chí nghiệm thu chặt chẽ:** Đạt cả 2 bẫy phổ biến: Không bắn khi mới bấm nút và Chống duplicate khi reload/retry.
+- [x] **Tiêu chí nghiệm thu kỹ thuật:** Có đủ 3 acceptance criteria chi tiết, giải quyết dứt điểm 2 bẫy phổ biến (bắn event sớm ở UI và ghi trùng do reload/retry).
 
 ---
 
-## 07 — Tự soi lỗi & nộp (Self-Audit & Revision Rationale)
+## 07 — Tự soi lỗi & Tổng kết nộp bài (Self-Audit & Final Verification)
 
 ### 1. Bảng đối chiếu 7 câu tự soi lỗi kinh điển
 
@@ -305,22 +315,28 @@ Repeat Value 2: Tiếp tục chốt lịch xem so sánh có bảo đảm giữ c
 
 ### 2. Revision Rationale (Giải trình quyết định thiết kế & Lựa chọn "phá rule")
 
-Trong quá trình thiết kế hệ thống chỉ số cho **BookingBot AI Agent**, nhóm đưa ra 3 quyết định thiết kế quan trọng có tính phá vỡ các quy tắc đo lường dashboard thông thường:
+Trong quá trình thiết kế hệ thống chỉ số cho **BookingBot AI Agent**, tôi đưa ra 3 quyết định thiết kế quan trọng có tính phá vỡ các quy tắc đo lường dashboard thông thường:
 
 1. **Phá rule về Cadence (Từ chối Daily Retention / DAU):**
-   - *Lý do:* Các sản phẩm thông thường thường ép buộc chỉ số DAU/MAU và Retention D1/D7. Tuy nhiên, bất động sản là danh mục giao dịch giá trị cao với chu kỳ cân nhắc kéo dài. Ép người dùng quay lại hàng ngày bằng notification sẽ biến sản phẩm thành công cụ spam gây khó chịu. Việc chọn nhịp **Weekly trong Journey 30 ngày** phản ánh đúng sự tôn trọng nhịp sống tự nhiên của khách hàng.
+   - *Lý do:* Các sản phẩm thông thường thường ép buộc chỉ số DAU/MAU và Retention D1/D7. Tuy nhiên, bất động sản là danh mục giao dịch giá trị cao với chu kỳ cân nhắc kéo dài 2–4 tuần. Ép người dùng quay lại hàng ngày bằng notification sẽ biến sản phẩm thành công cụ spam gây khó chịu. Việc chọn nhịp **Weekly trong Journey 30 ngày** phản ánh đúng sự tôn trọng nhịp sống tự nhiên của khách hàng.
 2. **Quy định về "Healthy Exit" trong Retention:**
    - *Lý do:* Nếu một người mua hoàn tất cọc căn hộ (`deal_completed_deposit`) sau 2 tuần sử dụng, họ sẽ không tiếp tục đặt lịch xem nhà ở tuần 3 và tuần 4. Theo công thức retention máy móc, người này bị tính là "churned". BookingBot định nghĩa đây là **Rời cohort thành công (Healthy Exit / Goal Completed)** — một thắng lợi lớn của sản phẩm cần được tách riêng khỏi tập người dùng drop-off do thất vọng.
 3. **Phân định dứt khoát giữa "Chat AI" và "Core Action":**
-   - *Lý do:* Để tránh bẫy "ảo tưởng mức độ tương tác" (Vanity metric) của các ứng dụng AI Agent, nhóm kiên quyết không chọn số lượng tin nhắn chat hay thời gian hội thoại làm Core Action. Một khách hàng chat 50 câu với AI mà không bao giờ gửi yêu cầu đặt lịch xem nhà là một ca thất bại về mặt chuyển đổi giá trị. Core Action bắt buộc phải là hành vi mang tính cam kết: `Submit Booking Request`.
+   - *Lý do:* Để tránh bẫy "ảo tưởng mức độ tương tác" (Vanity metric) của các ứng dụng AI Agent, tôi kiên quyết không chọn số lượng tin nhắn chat hay thời gian hội thoại làm Core Action. Một khách hàng chat 50 câu với AI mà không bao giờ gửi yêu cầu đặt lịch xem nhà là một ca thất bại về mặt chuyển đổi giá trị. Core Action bắt buộc phải là hành vi mang tính cam kết: `Submit Booking Request`.
 
 ---
 
-## GATE 5 — Bài sạch lỗi kinh điển
+### 3. Bảng kiểm tra trước khi nộp (Pre-submission Checklist)
 
-- [x] **Đối chiếu sạch 7/7 câu hỏi tự soi:** Không mắc bất kỳ lỗi kinh điển nào (không nhầm thao tác UI, không lấy login làm activation, không ép frequency, không phụ thuộc notification, retention khớp cadence, event map 2 chiều với metric).
-- [x] **Có phần Revision Rationale minh bạch:** Giải trình chi tiết 3 quyết định thiết kế có tính "phá rule" (Từ chối Daily, Định nghĩa Healthy Exit, Không lấy Chat AI làm Core Action).
-- [x] **Toàn bộ báo cáo sẵn sàng nộp:** Đầy đủ từ mục `00 — Phạm vi` đến mục `07 — Tự soi lỗi & nộp`, vượt qua cả 5 Gates của bài lab Day 20.
+- [x] **Repo đúng tên:** `Track1_Day20_02612_HoangAnhTai` theo format `Track1_Day20_MHV_HoVaTen`.
+- [x] **README có link tệp Metrics Pack:** Đã có link public trực tiếp tới tệp `README.md` trên GitHub.
+- [x] **Tệp đủ các mục (00–08):** Tính liên tục chặt chẽ từ Core action $\rightarrow$ Cadence $\rightarrow$ Metric $\rightarrow$ Loop $\rightarrow$ Event.
+- [x] **Core Action Card:** Đầy đủ Actor, Object, Completion rule và kết quả tự kiểm 5 tiêu chí (Đạt 5/5).
+- [x] **Retention:** Đủ 6 thành phần (`Unit`, `Cohort entry`, `Return event`, `Window`, `Threshold`, `Segment`) và ăn khớp với Cadence tuần trong hành trình 30 ngày.
+- [x] **Loop:** $\ge 2$ chu kỳ tự nhiên, có Reason to return ngoài notification và có một câu Metric hypothesis định lượng trỏ về metric Phase 3.
+- [x] **Bảng tracking:** 6 core events map 100% về metric; có 3 acceptance criteria chi tiết chuẩn kỹ thuật.
+- [x] **Revision Rationale:** Giải trình minh bạch 3 quyết định phá rule (Cadence tuần, Healthy Exit, không lấy chat làm core action).
+- [x] **AI Support Log:** Viết thực chất, đúng trải nghiệm cá nhân của học viên Hoàng Anh Tài, tuân thủ quy tắc dùng AI.
 
 ---
 
