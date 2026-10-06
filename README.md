@@ -203,3 +203,84 @@ Chọn 2 góc đo phù hợp nhất với bản chất sản phẩm:
 - [x] **Retention đủ 6 thành phần:** Đầy đủ `Unit`, `Cohort entry`, `Return event`, `Window`, `Threshold`, `Segment` và hoàn toàn đồng nhất với nhịp Cadence tuần/hành trình 30 ngày đã xác lập ở Phase 2.
 - [x] **North Star Metric đúng chuẩn:** Tuân thủ cấu trúc 3 thành phần `[Unit of value: Confirmed & Held Viewing] + [Quality threshold: Sổ đỏ + Không trùng lịch] + [Frequency: Weekly]`.
 - [x] **Có đủ Leading Indicators & Counter-metrics:** Gồm 3 chỉ số dẫn dắt thực tế và 3 chỉ số đối trọng nghiêm ngặt (chống No-show, chống Double-booking, chống AI Hallucination).
+
+---
+
+## 05 — Product Loop
+
+### 1. Sơ đồ Product Loop (Tối thiểu 2 chu kỳ)
+
+Mô hình vòng lặp sản phẩm tự nhiên của BookingBot AI Agent trải qua 2 chu kỳ khảo sát và đối chiếu:
+
+```text
+[Chu kỳ 1: Khám phá & Đặt lịch căn đầu tiên]
+Natural Trigger 1: Có nhu cầu mua nhà Vinhomes, mệt mỏi vì tin ảo/môi giới telesale
+  │
+  ▼
+Core Action 1: Chat với AI nêu tiêu chí → Chọn căn phù hợp → Gửi yêu cầu đặt lịch (submit_booking_request)
+  │
+  ▼
+Immediate Value 1: Nhận Deal ID, Chủ nhà duyệt lịch → Viewing Hold khóa căn độc quyền chống trùng lịch
+  │
+  ▼
+Saved State / Investment 1: Hệ thống lưu tiêu chí (buyer_profiles), lưu lịch sử tương tác & căn đã quan tâm
+  │
+  ▼
+[Chuyển tiếp tự nhiên không cần spam Notification]
+Next Natural Trigger: Khách vừa đi xem căn 1 về → Phát sinh nhu cầu đối chứng/so sánh thêm căn thứ 2
+  │
+  ▼
+[Chu kỳ 2: Khảo sát đối chứng & Củng cố niềm tin]
+Core Action 2: Mở lại bot (hồ sơ đã lưu sẵn) → Chọn căn thứ 2 để đối chiếu → Gửi yêu cầu đặt lịch căn 2
+  │
+  ▼
+Repeat Value 2: Tiếp tục chốt lịch xem so sánh có bảo đảm giữ căn → Đầy đủ dữ kiện thực tế để tự tin chốt cọc
+```
+
+---
+
+### 2. Loại loop & Metric Hypothesis
+
+1. **Loại loop chính đã chọn:** **Project-based Comparison Loop (Vòng lặp khảo sát đối chiếu theo dự án mua nhà).**
+
+2. **Metric Hypothesis (Bắt buộc một câu):**
+   > Nếu loop này hoạt động, metric **Viewing Confirmation & Completion Rate** sẽ thay đổi theo hướng **tăng từ 45% lên trên 65%** trong **khung thời gian 30 ngày (Active Buying Cohort)**, vì **việc lưu trữ hồ sơ tiêu chí người mua (Saved State) giúp AI đề xuất các căn đối chứng chính xác hơn, giảm 60% thời gian tìm kiếm ở chu kỳ 2 và thúc đẩy người mua tự tin hoàn thành lịch xem thực tế**.
+
+3. **Phân tích chiều sâu — "Reason to Return" nếu loại bỏ hoàn toàn Notification:**
+   - **Bản chất hành vi mua nhà:** Mua bất động sản là quyết định tài chính hệ trọng; người mua không bao giờ mua ngay căn đầu tiên mà luôn có nhu cầu tự nhiên phải xem ít nhất 2–3 căn để so sánh giá, view, tầng và nội thất.
+   - **Sức hút từ Saved State (Tài sản dữ liệu đã lưu):** Khi không có bất kỳ thông báo nhắc nhở nào, người mua vẫn chủ động quay lại vì BookingBot đã đóng vai trò là "Bàn làm việc thẩm định BĐS" của riêng họ (đã lưu sẵn ngân sách, hướng nhà, các căn đã khảo sát, Deal ID đang theo dõi). Quay lại BookingBot giúp họ tiếp tục tiến trình ngay lập tức mà không phải tốn công giải thích lại từ đầu cho môi giới mới.
+
+---
+
+## 06 — Tracking nhanh
+
+### 1. Bảng Core Events (4–8 core events dạng `object_action`)
+
+| Tên Event | Ý nghĩa (Hành vi / Value đại diện) | Thời điểm ghi nhận (Trigger Point) | Metric sử dụng (Map về Phase 3) |
+| :--- | :--- | :--- | :--- |
+| **`query_sent`** | Người mua gửi tin nhắn tìm kiếm hoặc lọc căn hộ thành công qua khung chat. | Khi backend tiếp nhận và lưu tin nhắn vào bảng `ai_conversations`. | `Activation: Start Event` (lần đầu là `first_query_sent`). |
+| **`card_clicked`** | Người mua bấm xem chi tiết một căn hộ cụ thể từ thẻ tương tác do AI gợi ý. | Khi người dùng click vào thẻ Rich Card căn hộ trong giao diện chat. | `Leading Indicator 1: Match-to-Card CTR`. |
+| **`booking_requested`** | Người mua hoàn tất gửi yêu cầu đặt lịch xem nhà cho căn hộ và slot giờ cụ thể. | Khi bản ghi `Booking` được insert vào database với trạng thái `REQUESTED` và sinh mã `deal_id`. | `Activation Event`, `Engagement: Weekly Bookings`, `Retention: Cohort Entry`. |
+| **`viewing_confirmed`** | Chủ nhà duyệt lịch hẹn và hệ thống kích hoạt Viewing Hold khóa căn thành công. | Khi `Booking` chuyển sang `CONFIRMED` và bản ghi `PropertyHold` chuyển sang `ACTIVE`. | **`North Star Metric (NSM)`**, `Engagement: Depth`. |
+| **`viewing_completed`** | Buổi xem nhà thực tế diễn ra thành công (khách có mặt tại căn hộ). | Khi Chủ nhà hoặc Khách bấm xác nhận "Đã hoàn thành buổi xem", chuyển `Booking` sang `COMPLETED`. | `Retention: Return Event`, `Engagement: Depth`, `Counter-metric 1: Buyer No-Show Rate` (nghịch đảo). |
+| **`viewing_cancelled`** | Lịch xem nhà bị hủy bởi Người mua hoặc Chủ nhà, hoặc hết hạn chờ duyệt. | Khi bản ghi `Booking` chuyển sang trạng thái `CANCELLED` hoặc `REJECTED`. | `Counter-metric 1: Buyer No-Show & Drop Rate`. |
+
+---
+
+### 2. Tiêu chí nghiệm thu Tracking (Acceptance Criteria)
+
+1. **Tiêu chí 1 (Chỉ ghi nhận khi hành vi thực sự hoàn tất ở Backend):**
+   - Với event `booking_requested`, hệ thống **chỉ được phép bắn event** khi API `POST /api/bookings` trả về mã HTTP `201 Created` và cơ sở dữ liệu đã commit thành công bản ghi `Booking` kèm mã `deal_id`. Tuyệt đối không bắn event tại thời điểm người dùng mới click nút trên giao diện khi chưa có phản hồi từ máy chủ.
+2. **Tiêu chí 2 (Idempotency — Chống ghi trùng do Reload / Retry / Network Lag):**
+   - Với mỗi cặp định danh `(buyer_id, booking_id)`, sự kiện `booking_requested` và `viewing_confirmed` chỉ được ghi nhận **đúng 1 lần duy nhất trong hệ thống Analytics**. Thao tác tải lại trang (Reload), mạng chập chờn gửi lại request (Network retry), hoặc các thao tác cập nhật ghi chú sau đó tuyệt đối không được tạo thêm event trùng lặp cho cùng một lượt đặt lịch.
+3. **Tiêu chí 3 (Chống ghi nhận giá trị ảo cho sự cố trùng lịch):**
+   - Sự kiện `viewing_confirmed` chỉ được phát ra khi giao dịch database tạo `PropertyHold` thành công qua ràng buộc loại trừ (`ex_property_holds_no_overlap`). Nếu database báo lỗi xung đột khung giờ (Collision), event `viewing_confirmed` **tuyệt đối không được kích hoạt**.
+
+---
+
+## GATE 4 — Loop nối metric, event nối loop
+
+- [x] **Loop $\ge 2$ chu kỳ:** Thiết kế rõ nét 2 chu kỳ: Chu kỳ 1 (Khám phá & Đặt căn đầu) $\rightarrow$ Saved State (Profile & Deal ID) $\rightarrow$ Next Natural Trigger (Nhu cầu đối chứng) $\rightarrow$ Chu kỳ 2 (Đặt căn so sánh & Chốt cọc).
+- [x] **Metric Hypothesis chuẩn xác:** Trỏ trực tiếp về metric `Viewing Confirmation & Completion Rate` ở Phase 3 với dự báo định lượng cụ thể (tăng từ 45% lên 65% trong 30 ngày).
+- [x] **Map 100% Events về Metric:** Tất cả 6/6 events trong bảng (`query_sent`, `card_clicked`, `booking_requested`, `viewing_confirmed`, `viewing_completed`, `viewing_cancelled`) đều map trực tiếp về ít nhất một metric cốt lõi đã định nghĩa ở Phase 3.
+- [x] **Tiêu chí nghiệm thu chặt chẽ:** Đạt cả 2 bẫy phổ biến: Không bắn khi mới bấm nút và Chống duplicate khi reload/retry.
