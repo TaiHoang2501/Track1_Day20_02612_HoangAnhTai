@@ -321,3 +321,23 @@ Trong quá trình thiết kế hệ thống chỉ số cho **BookingBot AI Agent
 - [x] **Đối chiếu sạch 7/7 câu hỏi tự soi:** Không mắc bất kỳ lỗi kinh điển nào (không nhầm thao tác UI, không lấy login làm activation, không ép frequency, không phụ thuộc notification, retention khớp cadence, event map 2 chiều với metric).
 - [x] **Có phần Revision Rationale minh bạch:** Giải trình chi tiết 3 quyết định thiết kế có tính "phá rule" (Từ chối Daily, Định nghĩa Healthy Exit, Không lấy Chat AI làm Core Action).
 - [x] **Toàn bộ báo cáo sẵn sàng nộp:** Đầy đủ từ mục `00 — Phạm vi` đến mục `07 — Tự soi lỗi & nộp`, vượt qua cả 5 Gates của bài lab Day 20.
+
+---
+
+## 08 — AI Support Log
+
+> **Tuân thủ quy tắc sử dụng AI:** AI chỉ được sử dụng làm người phản biện, hỗ trợ kiểm tra tính logic và chuẩn hóa cấu trúc; học viên Hoàng Anh Tài trực tiếp đưa ra các quyết định thiết kế cốt lõi, xác lập Cadence, Metric Hypothesis và bảo vệ các Counter-metrics.
+
+### 1. AI đã giúp tôi ở đâu?
+- **Phát hiện lỗi nhầm lẫn khái niệm ban đầu:** AI đã chỉ ra sự nhầm lẫn nghiêm trọng trong bản nháp đầu tiên giữa *Core Job* (mục tiêu người dùng) và *Pain Point* (lời phàn nàn "Tôi mất quá nhiều thời gian..."), giúp định hình lại câu lệnh Job chuẩn xác theo khung JTBD.
+- **Chuẩn hóa cấu trúc theo Rubric:** Hỗ trợ lên khung mẫu cho *Core Action Card*, *Action Nature Card*, và bảng *6 thành phần Retention* bám sát yêu cầu đề bài.
+- **Gợi ý quy ước đặt tên Event & Tiêu chí nghiệm thu:** Đề xuất danh mục tên event chuẩn dạng `object_action` (`booking_requested`, `viewing_confirmed`, `viewing_completed`) và các tiêu chí nghiệm thu kỹ thuật (Acceptance Criteria) để chống bẫy tracking theo click giao diện và duplicate do reload/retry.
+
+### 2. AI sai, hời hợt hoặc đề xuất metric sai nature ở đâu?
+- **Đề xuất metric sai lệch bản chất (Sai Nature):** Ban đầu AI có xu hướng áp dụng máy móc các mẫu số liệu SaaS/Mạng xã hội phổ biến: gợi ý đo lường số lượt chat với AI hàng ngày (`daily_chat_queries`), số tin nhắn/phiên, hoặc áp đặt nhịp Daily Active Users (DAU) và D7 Retention tĩnh. Điều này hoàn toàn mâu thuẫn với bản chất hành vi mua bất động sản giá trị cao (người mua không có nhu cầu chat hay đi xem nhà hàng ngày).
+- **Hời hợt về rủi ro gian lận (Gaming Metric):** AI ban đầu không lường trước các rủi ro đặc thù của BĐS: việc AI có thể "ảo giác" (hallucinate) nói sai lệch thông tin để ép khách đặt lịch xem nhà, hoặc khách đặt lịch ảo rồi bỏ hẹn (no-show) làm phiền chủ nhà.
+
+### 3. Tôi đã tự sửa hoặc quyết định lại điều gì?
+- **Bác bỏ nhịp Daily — Tự xác lập Cadence Weekly / Cohort 30 ngày:** Tôi kiên quyết bác bỏ các chỉ số DAU và D7 tĩnh; tự đưa ra quyết định đo lường theo **nhịp Weekly trong vòng đời hành trình 30 ngày (Custom Weekly Brackets W1–W4)**, vì khách hàng mua nhà chỉ đi xem tập trung vào cuối tuần.
+- **Tự chọn lại Core Action chuẩn xác:** Bác bỏ việc dùng số tin nhắn chat AI làm Core Action (tránh bẫy vanity metric); tự chốt Core Action duy nhất là `Submit Booking Request` vì đây là hành vi mang cam kết giao dịch thực tế gắn với slot giờ và căn hộ cụ thể.
+- **Thiết lập 3 Counter-metrics & Quy chế "Healthy Exit":** Tự bổ sung 3 chỉ số đối trọng nghiêm ngặt (chặn No-show $\le 10\%$, chặn Double-booking $= 0$, chặn AI hallucination $\le 2\%$) và đưa ra định nghĩa "Healthy Exit" để đảm bảo khách cọc mua nhà thành công không bị hệ thống tính oan là khách rời bỏ (churned).
