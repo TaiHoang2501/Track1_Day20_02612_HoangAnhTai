@@ -5,15 +5,13 @@
 
 ---
 
-**00 — Phạm vi**
+## 00 — Phạm vi
 
 1. **Dự án:** BookingBot AI Agent · Trợ lý Đặt lịch Xem nhà & Giữ căn Vinhomes
 2. **Persona:** Người mua nhà (Homebuyer) có nhu cầu tìm mua căn hộ ở thực hoặc đầu tư tại đại đô thị Vinhomes; bận rộn, coi trọng thời gian, sợ tin ảo và ngại bị môi giới telesale làm phiền.
 3. **Core job:** Tìm kiếm đúng căn hộ Vinhomes phù hợp tiêu chí và chốt được lịch hẹn đi xem nhà thực tế một cách nhanh chóng, minh bạch.
 
----
-
-### 1. Bảng 4 Khái Niệm Cốt Lõi (Core Framework)
+### Bảng 4 Khái Niệm Cốt Lõi (Core Framework)
 
 | Khái niệm | Câu hỏi định hướng | Áp dụng cho BookingBot AI Agent |
 | :--- | :--- | :--- |
@@ -24,7 +22,9 @@
 
 ---
 
-### 2. Điền Core Action Card (10')
+## 01 — Core Action
+
+### 1. Core Action Card
 
 | Thành phần | Câu hỏi định hướng | Câu trả lời của bạn (BookingBot AI Agent) |
 | :--- | :--- | :--- |
@@ -37,3 +37,31 @@
 | **Core value** | Người dùng nhận được lợi ích gì? | Tiết kiệm tối đa thời gian trao đổi; chắc chắn có lịch hẹn xem căn thật; được bảo vệ giữ chỗ (Viewing Hold chống trùng lịch) ngay khi chủ nhà xác nhận. |
 | **Evidence of value** | Dấu hiệu nào chứng minh value đã xảy ra? | Lịch hẹn chuyển sang trạng thái **`CONFIRMED`**, cơ chế khóa căn `Viewing Hold` kích hoạt thành công (ngăn chặn tuyệt đối double-booking), và Người mua nhận thông báo xác nhận thành công kèm hướng dẫn đón tiếp. |
 | **Candidate event** | Event nào có thể dùng để tracking? | • **Action Event (Hành vi):** `booking_requested` (Payload: `deal_id`, `property_id`, `slot_id`, `buyer_id`).<br>• **Value Event (Giá trị):** `booking_confirmed` (Payload: `booking_id`, `deal_id`, `hold_id`, `confirmed_at`). |
+
+---
+
+### 2. Tự kiểm 5 tiêu chí (Core Action Evaluation)
+
+| Tiêu chí | Câu hỏi kiểm tra | Đánh giá (Đạt / Trượt) | Giải thích lý do cụ thể cho BookingBot |
+| :--- | :--- | :---: | :--- |
+| **1. Gần core value** | Hành vi xảy ra là user đã tiến gần rõ rệt tới value chưa? | **ĐẠT** | Ngay khi gửi yêu cầu đặt lịch (`booking_requested`), Người mua đã hoàn tất việc chọn căn và chọn slot giờ; chỉ cần Chủ nhà bấm Duyệt là value kích hoạt ngay (Lịch hẹn chốt & Viewing Hold khóa căn). Đây là bước quyết định đưa người mua từ giai đoạn tìm kiếm sang nhận giá trị thực tế. |
+| **2. Có thể lặp lại** | Hành vi có xuất hiện lại khi nhu cầu quay lại không? | **ĐẠT** | Người mua nhà hiếm khi chỉ xem 1 căn duy nhất. Họ sẽ lặp lại hành vi này từ 3–5 lần (đặt lịch xem các căn 2PN, 3PN khác nhau cùng phân khu hoặc so sánh giữa các tòa S1, S2) trong suốt quá trình khảo sát trước khi đưa ra quyết định mua. |
+| **3. Có thể quan sát** | Bạn biết chính xác khi nào nó hoàn tất không? | **ĐẠT** | Đo lường chính xác và tường minh ở tầng kỹ thuật/hệ thống: Hoàn tất khi bản ghi `Booking` được insert vào cơ sở dữ liệu với `id` duy nhất, mã `deal_id`, trạng thái `REQUESTED` và hệ thống bắn event analytics `booking_requested`. |
+| **4. Có ý nghĩa** | Hành vi tăng có thật sự nghĩa là sản phẩm tốt hơn không? | **ĐẠT** | Số lượng `booking_requested` tăng chứng minh AI Agent bóc tách nhu cầu chuẩn xác, dữ liệu căn hộ uy tín, loại bỏ được lực cản đắn đo của khách (thay vì khách chỉ vào chat vài câu vu vơ rồi rời bỏ - drop-off). |
+| **5. Có thể tác động** | Team có thể cải thiện khả năng nó xảy ra không? | **ĐẠT** | Product Team hoàn toàn có thể tối ưu: Nâng cấp thuật toán gợi ý căn hộ (Hybrid SQL + Soft Score), hiển thị thẻ tương tác (Rich Cards) trực quan trong chat, đề xuất slot giờ thông minh, giảm ma sát xác thực OTP và gửi thông báo chăm sóc chủ động (Autonomous Follow-up). |
+
+> **Kết quả đánh giá:** **5/5 tiêu chí ĐẠT** (Vượt ngưỡng yêu cầu $\ge 4/5$).
+
+---
+
+### 3. GATE 1 — Core action đứng vững
+
+- [x] **Có đủ 3 thành tố cốt lõi:**
+  - **Actor:** Người mua nhà (`Homebuyer / Buyer`).
+  - **Object:** Căn hộ cụ thể (`Property`) + Khung giờ hẹn (`AvailabilitySlot`) $\rightarrow$ Tạo thành bản ghi `Booking` thuộc `Deal`.
+  - **Completion Rule:** Bản ghi `Booking` được tạo thành công với trạng thái `REQUESTED`, cấp mã Deal và gửi thông báo duyệt tới Chủ nhà.
+- [x] **Vượt qua kiểm định tiêu chí:** Đạt **5/5 tiêu chí tự kiểm** (không trượt tiêu chí nào).
+- [x] **Phân định rõ ràng — Vì sao Core Action này KHÔNG phải là "mở app", "đăng nhập" hay "hỏi AI":**
+  - **Không phải "Mở app / Đăng nhập":** Mở app hay đăng nhập chỉ là thao tác hạ tầng/phiên làm việc (session/login), không mang lại giá trị nghiệp vụ và không chứng minh được nhu cầu thực tế của người mua. Thậm chí, BookingBot cho phép **Guest Chat (trải nghiệm không cần đăng nhập trước)**, chứng minh việc đăng nhập thuần túy không tạo ra giá trị cốt lõi.
+  - **Không phải "Hỏi AI" (Chat chung chung):** Đặt câu hỏi cho AI (*"Tìm giúp tôi căn 2PN Ocean Park"* hoặc *"Giá căn hộ ở đây thế nào?"*) chỉ là một vi thao tác giao diện (UI interaction) ở bước khám phá. Nếu người dùng hỏi 20 câu nhưng không bao giờ bấm đặt lịch xem căn nào thì họ nhận được **zero core value** (vẫn chưa có lịch xem thực tế, vẫn chưa thẩm định được căn nhà).
+  - **Bản chất của `Submit Booking Request`:** Đây là hành vi mang **cam kết giao dịch thực tế (transactional intent)**. Nó kết nối toàn bộ chuỗi giá trị: từ nhu cầu hội thoại $\rightarrow$ lựa chọn căn thật $\rightarrow$ khóa khung giờ hẹn thực tế của chủ nhà. Đây chính là cột mốc phân định giữa "người dùng dạo chơi" và "khách hàng thực sự tiến tới nhận giá trị cốt lõi".
