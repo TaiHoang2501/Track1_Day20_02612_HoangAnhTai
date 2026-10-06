@@ -284,3 +284,40 @@ Repeat Value 2: Tiếp tục chốt lịch xem so sánh có bảo đảm giữ c
 - [x] **Metric Hypothesis chuẩn xác:** Trỏ trực tiếp về metric `Viewing Confirmation & Completion Rate` ở Phase 3 với dự báo định lượng cụ thể (tăng từ 45% lên 65% trong 30 ngày).
 - [x] **Map 100% Events về Metric:** Tất cả 6/6 events trong bảng (`query_sent`, `card_clicked`, `booking_requested`, `viewing_confirmed`, `viewing_completed`, `viewing_cancelled`) đều map trực tiếp về ít nhất một metric cốt lõi đã định nghĩa ở Phase 3.
 - [x] **Tiêu chí nghiệm thu chặt chẽ:** Đạt cả 2 bẫy phổ biến: Không bắn khi mới bấm nút và Chống duplicate khi reload/retry.
+
+---
+
+## 07 — Tự soi lỗi & nộp (Self-Audit & Revision Rationale)
+
+### 1. Bảng đối chiếu 7 câu tự soi lỗi kinh điển
+
+| STT | Câu hỏi tự soi lỗi | Kết quả | Chi tiết đối chiếu thực tế với BookingBot AI Agent |
+| :---: | :--- | :---: | :--- |
+| **1** | Core action không phải thao tác giao diện hay output hệ thống? | **ĐẠT** | Core action là `Submit Booking Request` — hành vi mang cam kết giao dịch thực tế (transactional commitment), tác động trực tiếp vào cơ sở dữ liệu (`bookings`, `deals`, `availability_slots`). Hoàn toàn không phải thao tác giao diện (click nút, mở tab) và không phải output do AI tự sinh ra. |
+| **2** | Activation không phải "xem hết hướng dẫn" hay "đăng nhập"? | **ĐẠT** | Activation được định nghĩa là `first_booking_requested` (và được xác nhận trong 72h). Hệ thống cho phép **Guest Chat (không cần đăng nhập trước)**, chứng minh việc tạo tài khoản không đại diện cho giá trị; chỉ khi khách chốt được yêu cầu xem căn thật thì first value mới xuất hiện. |
+| **3** | Frequency không cao hơn nhu cầu thật? | **ĐẠT** | Nhịp đo là **Weekly (1.5 – 2.5 bookings/active week)** trong chu kỳ 30 ngày, tập trung vào cuối tuần. Nhóm kiên quyết từ chối nhịp đo Daily/DAU vì người mua không thể và không có nhu cầu đi xem nhà mỗi ngày. |
+| **4** | Loop có reason to return ngoài notification? | **ĐẠT** | Có. Reason to return xuất phát từ nhu cầu nội tại: mua BĐS giá trị lớn bắt buộc phải khảo sát đối chứng 2–3 căn trước khi chốt cọc, cộng hưởng cùng tài sản dữ liệu đã lưu (`Saved State`: tiêu chí, Deal ID, căn đã xem) giúp họ tiếp tục tiến trình ngay mà không cần mở đầu lại. |
+| **5** | Retention không dùng chung một window cho mọi cadence? | **ĐẠT** | Retention sử dụng **Custom Journey Brackets theo tuần trong chu kỳ 30 ngày** (W1, W2, W3, W4), đồng nhất với bản chất hành vi theo dự án (Project-based Journey); không dùng bẫy D1/D7/D30 tĩnh của mạng xã hội. |
+| **6** | Mọi event đều map về một metric? | **ĐẠT** | Toàn bộ 6/6 events trong bảng Tracking (`query_sent`, `card_clicked`, `booking_requested`, `viewing_confirmed`, `viewing_completed`, `viewing_cancelled`) đều map trực tiếp về ít nhất 1 metric cốt lõi (Activation, NSM, Leading Indicators, Counter-metrics, Retention). |
+| **7** | Metric nào cũng có event để tính nó? | **ĐẠT** | Mọi metric ở Phase 3 đều được cấu thành từ các event cụ thể đã định nghĩa (ví dụ: Depth = `viewing_completed` / `booking_requested`, NSM = `viewing_confirmed`, Activation = `query_sent` $\rightarrow$ `booking_requested`). |
+
+---
+
+### 2. Revision Rationale (Giải trình quyết định thiết kế & Lựa chọn "phá rule")
+
+Trong quá trình thiết kế hệ thống chỉ số cho **BookingBot AI Agent**, nhóm đưa ra 3 quyết định thiết kế quan trọng có tính phá vỡ các quy tắc đo lường dashboard thông thường:
+
+1. **Phá rule về Cadence (Từ chối Daily Retention / DAU):**
+   - *Lý do:* Các sản phẩm thông thường thường ép buộc chỉ số DAU/MAU và Retention D1/D7. Tuy nhiên, bất động sản là danh mục giao dịch giá trị cao với chu kỳ cân nhắc kéo dài. Ép người dùng quay lại hàng ngày bằng notification sẽ biến sản phẩm thành công cụ spam gây khó chịu. Việc chọn nhịp **Weekly trong Journey 30 ngày** phản ánh đúng sự tôn trọng nhịp sống tự nhiên của khách hàng.
+2. **Quy định về "Healthy Exit" trong Retention:**
+   - *Lý do:* Nếu một người mua hoàn tất cọc căn hộ (`deal_completed_deposit`) sau 2 tuần sử dụng, họ sẽ không tiếp tục đặt lịch xem nhà ở tuần 3 và tuần 4. Theo công thức retention máy móc, người này bị tính là "churned". BookingBot định nghĩa đây là **Rời cohort thành công (Healthy Exit / Goal Completed)** — một thắng lợi lớn của sản phẩm cần được tách riêng khỏi tập người dùng drop-off do thất vọng.
+3. **Phân định dứt khoát giữa "Chat AI" và "Core Action":**
+   - *Lý do:* Để tránh bẫy "ảo tưởng mức độ tương tác" (Vanity metric) của các ứng dụng AI Agent, nhóm kiên quyết không chọn số lượng tin nhắn chat hay thời gian hội thoại làm Core Action. Một khách hàng chat 50 câu với AI mà không bao giờ gửi yêu cầu đặt lịch xem nhà là một ca thất bại về mặt chuyển đổi giá trị. Core Action bắt buộc phải là hành vi mang tính cam kết: `Submit Booking Request`.
+
+---
+
+## GATE 5 — Bài sạch lỗi kinh điển
+
+- [x] **Đối chiếu sạch 7/7 câu hỏi tự soi:** Không mắc bất kỳ lỗi kinh điển nào (không nhầm thao tác UI, không lấy login làm activation, không ép frequency, không phụ thuộc notification, retention khớp cadence, event map 2 chiều với metric).
+- [x] **Có phần Revision Rationale minh bạch:** Giải trình chi tiết 3 quyết định thiết kế có tính "phá rule" (Từ chối Daily, Định nghĩa Healthy Exit, Không lấy Chat AI làm Core Action).
+- [x] **Toàn bộ báo cáo sẵn sàng nộp:** Đầy đủ từ mục `00 — Phạm vi` đến mục `07 — Tự soi lỗi & nộp`, vượt qua cả 5 Gates của bài lab Day 20.
